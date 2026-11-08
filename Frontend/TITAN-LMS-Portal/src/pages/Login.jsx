@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 
@@ -147,6 +147,9 @@ function Login() {
               {loading ? "Logging in..." : "Login"}
             </button>
           </form>
+             <p className="text-center mt-3 mb-0">
+            Don't have an account? <Link to="/register">Register</Link>
+          </p>
         </div>
       </div>
     </div>
