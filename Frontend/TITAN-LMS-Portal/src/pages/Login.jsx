@@ -147,9 +147,9 @@ function Login() {
               {loading ? "Logging in..." : "Login"}
             </button>
           </form>
-             <p className="text-center mt-3 mb-0">
-            Don't have an account? <Link to="/register">Register</Link>
-          </p>
+             <p className="text-center mt-3 mb-0 text-light">
+  Don&apos;t have an account? <Link to="/register" className="text-info fw-semibold">Register</Link>
+</p>
         </div>
       </div>
     </div>
