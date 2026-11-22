@@ -426,3 +426,49 @@ body::before {
     margin-bottom: 8px;
   }
 }
+/* ===== Mobile fixes ===== */
+.mobile-menu-btn {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1050;
+  background: #161722;
+  color: #fff;
+  border: 1px solid #2a3040;
+  border-radius: 8px;
+  width: 42px;
+  height: 42px;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.mobile-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1090;
+}
+
+@media (max-width: 767px) {
+  .app-main-content {
+    width: 100%;
+    padding: 64px 12px 16px !important;
+  }
+
+  /* the logo image has a white box; hide the big watermark on phones */
+  body::before,
+  .app-main-content::before {
+    display: none;
+  }
+
+  .container, .container-fluid {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}

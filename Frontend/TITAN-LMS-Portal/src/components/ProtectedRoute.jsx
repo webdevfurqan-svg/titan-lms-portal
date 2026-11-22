@@ -29,7 +29,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
       <Sidebar />
       <main
         className="app-main-content"
-        style={{ flex: 1, padding: '24px', minHeight: '100vh' }}
+        style={{ flex: 1, minWidth: 0,padding: '24px', minHeight: '100vh' }}
       >
         <Outlet />
       </main>

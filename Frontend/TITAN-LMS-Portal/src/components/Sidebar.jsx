@@ -9,15 +9,28 @@ const Sidebar = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(window.innerWidth < 768);
 
-useEffect(() => {
-  function handleResize() {
-    setIsCollapsed(window.innerWidth < 768);
-  }
-  window.addEventListener('resize', handleResize);
-  return () => window.removeEventListener('resize', handleResize);
-}, []);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    function handleResize() {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) setMobileOpen(false);
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // close the menu after navigating on phones
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  // On phones the menu is always shown expanded when it is open
+  const collapsed = isMobile ? false : isCollapsed;
 
   const handleLogout = async () => {
     await logout();
@@ -29,162 +42,213 @@ useEffect(() => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <aside 
-      style={{ 
-        width: isCollapsed ? '72px' : '230px', 
-        background: '#161722', 
-        color: '#e2e8f0', 
-        minHeight: '100vh', 
-        padding: '16px 12px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-        overflowX: 'hidden',
-        whiteSpace: 'nowrap',
-        borderRight: '1px solid #232533'
-      }}
-    >
-      <div>
+    <>
+      {isMobile && (
+        <button
+          className="mobile-menu-btn"
+          onClick={() => setMobileOpen(true)}
+          aria-label="Open menu"
+        >
+          ☰
+        </button>
+      )}
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'flex-end', marginBottom: '16px', padding: '0 4px' }}>
-          <button 
-            onClick={() => setIsCollapsed(!isCollapsed)}
+      {isMobile && mobileOpen && (
+        <div className="mobile-backdrop" onClick={() => setMobileOpen(false)} />
+      )}
+
+      <aside
+        style={{
+          width: isMobile ? '230px' : collapsed ? '72px' : '230px',
+          transform: isMobile && !mobileOpen ? 'translateX(-100%)' : 'translateX(0)',
+          position: isMobile ? 'fixed' : 'relative',
+          top: 0,
+          left: 0,
+          zIndex: 1100,
+          background: '#161722',
+          color: '#e2e8f0',
+          minHeight: '100vh',
+          height: isMobile ? '100vh' : 'auto',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          padding: '16px 12px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s ease',
+          whiteSpace: 'nowrap',
+          borderRight: '1px solid #232533',
+        }}
+      >
+        <div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: isMobile ? 'flex-end' : collapsed ? 'center' : 'flex-end',
+              marginBottom: '16px',
+              padding: '0 4px',
+            }}
+          >
+            {isMobile ? (
+              <button
+                onClick={() => setMobileOpen(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#8a8d9b',
+                  cursor: 'pointer',
+                  padding: '6px',
+                  fontSize: '1.2rem',
+                  lineHeight: 1,
+                }}
+                title="Close menu"
+              >
+                ✕
+              </button>
+            ) : (
+              <button
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#8a8d9b',
+                  cursor: 'pointer',
+                  padding: '6px',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  {collapsed ? <path d="m9 18 6-6-6-6" /> : <path d="m15 18-6-6 6-6" />}
+                </svg>
+              </button>
+            )}
+          </div>
+
+          {!collapsed && (
+            <div
+              style={{
+                fontSize: '0.75rem',
+                color: '#6c7293',
+                textTransform: 'uppercase',
+                fontWeight: '600',
+                letterSpacing: '0.5px',
+                marginBottom: '16px',
+                paddingLeft: '8px',
+              }}
+            >
+              Role: <span style={{ color: '#ffffff' }}>{role}</span>
+            </div>
+          )}
+
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {role === 'teacher' && (
+              <>
+                <SidebarLink to="/teacher/dashboard" label="Dashboard" active={isActive('/teacher/dashboard')} isCollapsed={collapsed} icon={<DashboardIcon />} />
+                <SidebarLink to="/profile" label="Profile" active={isActive('/profile')} isCollapsed={collapsed} icon={<ProfileIcon />} />
+                <SidebarLink to="/courses" label="Courses" active={isActive('/courses')} isCollapsed={collapsed} icon={<CoursesIcon />} />
+                <SidebarLink to="/assignments" label="Assignments" active={isActive('/assignments')} isCollapsed={collapsed} icon={<AssignmentsIcon />} />
+                <SidebarLink to="/quizzes" label="Quizzes & Exams" active={isActive('/quizzes')} isCollapsed={collapsed} icon={<QuizzesIcon />} />
+                <SidebarLink to="/attendance" label="Attendance" active={isActive('/attendance')} isCollapsed={collapsed} icon={<AttendanceIcon />} />
+                <SidebarLink to="/grades" label="Grades" active={isActive('/grades')} isCollapsed={collapsed} icon={<GradesIcon />} />
+                <SidebarLink to="/timetable" label="Timetable" active={isActive('/timetable')} isCollapsed={collapsed} icon={<TimetableIcon />} />
+                <SidebarLink to="/announcements" label="Announcements" active={isActive('/announcements')} isCollapsed={collapsed} icon={<AnnouncementsIcon />} />
+              </>
+            )}
+
+            {role === 'student' && (
+              <>
+                <SidebarLink to="/student/dashboard" label="Dashboard" active={isActive('/student/dashboard')} isCollapsed={collapsed} icon={<DashboardIcon />} />
+                <SidebarLink to="/profile" label="Profile" active={isActive('/profile')} isCollapsed={collapsed} icon={<ProfileIcon />} />
+                <SidebarLink to="/student/courses" label="Courses" active={isActive('/student/courses')} isCollapsed={collapsed} icon={<CoursesIcon />} />
+                <SidebarLink to="/student/assignments" label="Assignments" active={isActive('/student/assignments')} isCollapsed={collapsed} icon={<AssignmentsIcon />} />
+                <SidebarLink to="/student/quizzes" label="Quizzes & Exams" active={isActive('/student/quizzes')} isCollapsed={collapsed} icon={<QuizzesIcon />} />
+                <SidebarLink to="/student/attendance" label="Attendance" active={isActive('/student/attendance')} isCollapsed={collapsed} icon={<AttendanceIcon />} />
+                <SidebarLink to="/student/payment" label="Payment" active={isActive('/student/payment')} isCollapsed={collapsed} icon={<PaymentIcon />} />
+                <SidebarLink to="/student/grades" label="Grades" active={isActive('/student/grades')} isCollapsed={collapsed} icon={<GradesIcon />} />
+                <SidebarLink to="/student/timetable" label="Timetable" active={isActive('/student/timetable')} isCollapsed={collapsed} icon={<TimetableIcon />} />
+                <SidebarLink to="/student/announcements" label="Announcements" active={isActive('/student/announcements')} isCollapsed={collapsed} icon={<AnnouncementsIcon />} />
+              </>
+            )}
+
+            {role === 'admin' && (
+              <>
+                <SidebarLink to="/admin/dashboard" label="Dashboard" active={isActive('/admin/dashboard')} isCollapsed={collapsed} icon={<DashboardIcon />} />
+                <SidebarLink to="/profile" label="Profile" active={isActive('/profile')} isCollapsed={collapsed} icon={<ProfileIcon />} />
+                <SidebarLink to="/attendance" label="Attendance" active={isActive('/attendance')} isCollapsed={collapsed} icon={<AttendanceIcon />} />
+                <SidebarLink to="/announcements" label="Announcements" active={isActive('/announcements')} isCollapsed={collapsed} icon={<AnnouncementsIcon />} />
+                <SidebarLink to="/timetable" label="Timetable" active={isActive('/timetable')} isCollapsed={collapsed} icon={<TimetableIcon />} />
+                <SidebarLink to="/quizzes" label="Quizzes & Exams" active={isActive('/quizzes')} isCollapsed={collapsed} icon={<QuizzesIcon />} />
+              </>
+            )}
+          </nav>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '16px', borderTop: '1px solid #232533' }}>
+          <button
+            onClick={toggleTheme}
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#8a8d9b',
-              cursor: 'pointer',
-              padding: '6px',
+              color: '#94a3b8',
+              padding: '10px 12px',
               borderRadius: '6px',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              gap: '12px',
+              fontSize: '0.9rem',
+              fontWeight: '500',
+              justifyContent: collapsed ? 'center' : 'flex-start',
+              width: '100%',
             }}
-            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              {isCollapsed ? <path d="m9 18 6-6-6-6"/> : <path d="m15 18-6-6 6-6"/>}
-            </svg>
+            {theme === 'light' ? <MoonIcon /> : <SunIcon />}
+            {!collapsed && <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>}
+          </button>
+
+          {!collapsed && user?.name && (
+            <div style={{ fontSize: '0.85rem', color: '#94a3b8', paddingLeft: '8px', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {user.name}
+            </div>
+          )}
+
+          <button
+            onClick={handleLogout}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#f87171',
+              padding: '10px 12px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              fontSize: '0.9rem',
+              fontWeight: '500',
+              justifyContent: collapsed ? 'center' : 'flex-start',
+              width: '100%',
+            }}
+            title="Logout"
+          >
+            <LogoutIcon />
+            {!collapsed && <span>Logout</span>}
           </button>
         </div>
-
-        {!isCollapsed && (
-          <div style={{ fontSize: '0.75rem', color: '#6c7293', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.5px', marginBottom: '16px', paddingLeft: '8px' }}>
-            Role: <span style={{ color: '#ffffff' }}>{role}</span>
-          </div>
-        )}
-
-        
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {role === 'teacher' && (
-            <>
-              <SidebarLink to="/teacher/dashboard" label="Dashboard" active={isActive('/teacher/dashboard')} isCollapsed={isCollapsed} icon={<DashboardIcon />} />
-              <SidebarLink to="/profile" label="Profile" active={isActive('/profile')} isCollapsed={isCollapsed} icon={<ProfileIcon />} />
-              <SidebarLink to="/courses" label="Courses" active={isActive('/courses')} isCollapsed={isCollapsed} icon={<CoursesIcon />} />
-              <SidebarLink to="/assignments" label="Assignments" active={isActive('/assignments')} isCollapsed={isCollapsed} icon={<AssignmentsIcon />} />
-              <SidebarLink to="/quizzes" label="Quizzes & Exams" active={isActive('/quizzes')} isCollapsed={isCollapsed} icon={<QuizzesIcon />} />
-              <SidebarLink to="/attendance" label="Attendance" active={isActive('/attendance')} isCollapsed={isCollapsed} icon={<AttendanceIcon />} />
-              <SidebarLink to="/grades" label="Grades" active={isActive('/grades')} isCollapsed={isCollapsed} icon={<GradesIcon />} />
-              <SidebarLink to="/timetable" label="Timetable" active={isActive('/timetable')} isCollapsed={isCollapsed} icon={<TimetableIcon />} />
-              <SidebarLink to="/announcements" label="Announcements" active={isActive('/announcements')} isCollapsed={isCollapsed} icon={<AnnouncementsIcon />} />
-              {/* <SidebarLink to="/messages" label="Messages" active={isActive('/messages')} isCollapsed={isCollapsed} icon={<MessagesIcon />} /> */}
-              {/* <SidebarLink to="/certificates" label="Certificates" active={isActive('/certificates')} isCollapsed={isCollapsed} icon={<CertificatesIcon />} /> */}
-            </>
-          )}
-
-          {role === 'student' && (
-            <>
-              <SidebarLink to="/student/dashboard" label="Dashboard" active={isActive('/student/dashboard')} isCollapsed={isCollapsed} icon={<DashboardIcon />} />
-              <SidebarLink to="/profile" label="Profile" active={isActive('/profile')} isCollapsed={isCollapsed} icon={<ProfileIcon />} />
-              <SidebarLink to="/student/courses" label="Courses" active={isActive('/student/courses')} isCollapsed={isCollapsed} icon={<CoursesIcon />} />
-              <SidebarLink to="/student/assignments" label="Assignments" active={isActive('/student/assignments')} isCollapsed={isCollapsed} icon={<AssignmentsIcon />} />
-              <SidebarLink to="/student/quizzes" label="Quizzes & Exams" active={isActive('/student/quizzes')} isCollapsed={isCollapsed} icon={<QuizzesIcon />} />
-              <SidebarLink to="/student/attendance" label="Attendance" active={isActive('/student/attendance')} isCollapsed={isCollapsed} icon={<AttendanceIcon />} />
-              <SidebarLink to="/student/payment" label="Payment" active={isActive('/student/payment')} isCollapsed={isCollapsed} icon={<PaymentIcon />} />
-              <SidebarLink to="/student/grades" label="Grades" active={isActive('/student/grades')} isCollapsed={isCollapsed} icon={<GradesIcon />} />
-              <SidebarLink to="/student/timetable" label="Timetable" active={isActive('/student/timetable')} isCollapsed={isCollapsed} icon={<TimetableIcon />} />
-              <SidebarLink to="/student/announcements" label="Announcements" active={isActive('/student/announcements')} isCollapsed={isCollapsed} icon={<AnnouncementsIcon />} />
-              {/* <SidebarLink to="/student/messages" label="Messages" active={isActive('/student/messages')} isCollapsed={isCollapsed} icon={<MessagesIcon />} /> */}
-              {/* <SidebarLink to="/student/certificates" label="Certificates" active={isActive('/student/certificates')} isCollapsed={isCollapsed} icon={<CertificatesIcon />} /> */}
-            </>
-          )}
-{role === 'admin' && (
-  <>
-    <SidebarLink to="/admin/dashboard" label="Dashboard" active={isActive('/admin/dashboard')} isCollapsed={isCollapsed} icon={<DashboardIcon />} />
-    <SidebarLink to="/profile" label="Profile" active={isActive('/profile')} isCollapsed={isCollapsed} icon={<ProfileIcon />} />
-    <SidebarLink to="/attendance" label="Attendance" active={isActive('/attendance')} isCollapsed={isCollapsed} icon={<AttendanceIcon />} />
-    <SidebarLink to="/announcements" label="Announcements" active={isActive('/announcements')} isCollapsed={isCollapsed} icon={<AnnouncementsIcon />} />
-    <SidebarLink to="/timetable" label="Timetable" active={isActive('/timetable')} isCollapsed={isCollapsed} icon={<TimetableIcon />} />
-    <SidebarLink to="/quizzes" label="Quizzes & Exams" active={isActive('/quizzes')} isCollapsed={isCollapsed} icon={<QuizzesIcon />} />
-  </>
-)}
-        </nav>
-      </div>
-
-      {/* Bottom User Info & Logout */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '16px', borderTop: '1px solid #232533' }}>
-        <button
-          onClick={toggleTheme}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: '#94a3b8',
-            padding: '10px 12px',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            fontSize: '0.9rem',
-            fontWeight: '500',
-            justifyContent: isCollapsed ? 'center' : 'flex-start',
-            width: '100%',
-            transition: 'background 0.15s ease'
-          }}
-          title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
-        >
-          {theme === 'light' ? <MoonIcon /> : <SunIcon />}
-          {!isCollapsed && <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>}
-        </button>
-
-        {!isCollapsed && user?.name && (
-          <div style={{ fontSize: '0.85rem', color: '#94a3b8', paddingLeft: '8px', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {user.name}
-          </div>
-        )}
-        <button 
-          onClick={handleLogout} 
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: '#f87171',
-            padding: '10px 12px',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            fontSize: '0.9rem',
-            fontWeight: '500',
-            justifyContent: isCollapsed ? 'center' : 'flex-start',
-            width: '100%',
-            transition: 'background 0.15s ease'
-          }}
-          title="Logout"
-        >
-          <LogoutIcon />
-          {!isCollapsed && <span>Logout</span>}
-        </button>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 };
 
-// Reusable Professional Sidebar Link
 const SidebarLink = ({ to, label, active, isCollapsed, icon }) => (
-  <Link 
-    to={to} 
+  <Link
+    to={to}
     title={isCollapsed ? label : ''}
     style={{
       color: active ? '#ffffff' : '#94a3b8',
@@ -198,7 +262,7 @@ const SidebarLink = ({ to, label, active, isCollapsed, icon }) => (
       alignItems: 'center',
       gap: '12px',
       justifyContent: isCollapsed ? 'center' : 'flex-start',
-      transition: 'all 0.15s ease'
+      transition: 'all 0.15s ease',
     }}
   >
     <span style={{ color: active ? '#60a5fa' : '#94a3b8', display: 'flex', alignItems: 'center' }}>
@@ -207,7 +271,6 @@ const SidebarLink = ({ to, label, active, isCollapsed, icon }) => (
     {!isCollapsed && <span>{label}</span>}
   </Link>
 );
-
 
 const DashboardIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>);
 const ProfileIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>);
