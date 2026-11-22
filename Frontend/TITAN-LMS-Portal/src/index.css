@@ -472,3 +472,27 @@ body::before {
     white-space: nowrap;
   }
 }
+@media (max-width: 767px) {
+  /* leave room for the ☰ button on the left */
+  .navbar {
+    padding-left: 64px !important;
+    padding-right: 12px !important;
+    min-height: 60px;
+  }
+
+  .navbar-brand-mobile {
+    font-size: 1rem;
+    margin-right: 0;
+  }
+
+  /* Dashboard / My Grades / Logout are already in the sidebar menu */
+  .navbar-actions {
+    display: none;
+  }
+
+  /* put the ☰ button vertically centred in the navbar */
+  .mobile-menu-btn {
+    top: 9px;
+    left: 10px;
+  }
+}

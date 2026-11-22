@@ -18,7 +18,7 @@ function Navbar() {
   return (
     <nav className="navbar navbar-expand navbar-dark bg-dark px-4">
 
-      <Link to="/" className="navbar-brand d-flex align-items-center gap-2 m-0">
+      <Link to="/" className="navbar-brand navbar-brand-mobile d-flex align-items-center gap-2 m-0">
         <img
           src="/titan-logo.png"
           alt="TiTan Logo"
@@ -27,7 +27,7 @@ function Navbar() {
         <span className="fw-bold fs-5">TITAN LMS</span>
       </Link>
 
-      <div className="ms-auto">
+      <div className="ms-auto  navbar-actions">
         {user?.role === "teacher" && (
           <Link
             to="/teacher/dashboard"
